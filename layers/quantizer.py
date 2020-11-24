@@ -5,18 +5,18 @@ import numpy as np
 PARAM_QUANT_COUNTER = 0
 
 
-
 class QuantizerFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, input, d, qm):
+    def forward(ctx, input, d, qm, d_hard, qm_hard):
         ctx.save_for_backward(input, d, qm)
-        input = torch.clamp(input, min=-qm.item(), max=qm.item())
-        output = torch.sign(input) * (d * torch.floor(torch.abs(input) / d  + 1/2)) # d * torch.round(input / d)
+        input = torch.clamp(input, min=-qm_hard.item(), max=qm_hard.item())
+        output = torch.sign(input) * (d_hard * torch.floor(torch.abs(input) / d_hard  + 1/2)) # d * torch.round(input / d)
         return output
 
     @staticmethod
     def backward(ctx, grad_output):
-        input, d, qm= ctx.saved_tensors
+
+        input, d, qm = ctx.saved_tensors
         grad_input = grad_d = grad_qm = None
 
         input_ = torch.clamp(input, min=-qm.item(), max=qm.item())
@@ -38,7 +38,7 @@ class QuantizerFunction(torch.autograd.Function):
             grad_qm[torch.abs(input) <= qm.item()] = 0
 
 
-        return grad_input, grad_d, grad_qm
+        return grad_input, grad_d, grad_qm, None, None
 
 
 
@@ -52,6 +52,7 @@ class Quantizer(nn.Module):
             PARAM_QUANT_COUNTER += 1
             self.name = "ParamQuant{}".format(PARAM_QUANT_COUNTER)
 
+        self.integer_bits_constraint = False
         self.parametrization_type = 'LOG'
         if self.parametrization_type == 'LOG':
             self.d_log = nn.Parameter(torch.log(torch.tensor(([d_init]), dtype=torch.float32)), requires_grad=True)
@@ -93,40 +94,48 @@ class Quantizer(nn.Module):
         elif self.parametrization_type == 'ORIG':
             return self.get_params_orig()
 
+
     def get_params_log(self):
 
-        qm_clamped = torch.exp(torch.clamp(self.qm_log, min=np.log(self.qm_min), max=np.log(self.qm_max))) # maybe you need to maje qm_hard power of two as well. Because then bit will be integer
-        
+        qm_clamped = torch.exp(torch.clamp(self.qm_log, min=np.log(self.qm_min), max=np.log(self.qm_max)))
 
-        d_clamped_ = torch.exp(torch.clamp(self.d_log, min=np.log(self.d_min), max=np.log(self.d_max)))
-        d_clamped = torch.min(d_clamped_, qm_clamped)
+        d_clamped = torch.exp(torch.clamp(self.d_log, min=np.log(self.d_min), max=np.log(self.d_max)))
+        d_clamped = torch.min(d_clamped, qm_clamped)
+
         d_hard = 2 ** torch.round(torch.log2(d_clamped))
-        d_hard = torch.min(d_hard, qm_clamped) # to ensure that qm >= d. And if d > qm, then I make it equal to qm.
+        if self.integer_bits_constraint:
+            qm_hard = d_hard * (2 ** (torch.floor(torch.log2(torch.ceil(qm_clamped / d_hard))) + 1) - 1)
+        else:
+            qm_hard = d_hard * torch.round(qm_clamped / d_hard)
+        d_hard = torch.min(d_hard, qm_hard)
+
+        qm_ste = (qm_hard - qm_clamped).detach() + qm_clamped
         d_ste = (d_hard - d_clamped).detach() + d_clamped
 
-        qm_hard = d_hard * torch.round(qm_clamped / d_hard)  # so that qm corresponds to uniform base grid (or in other words qm = k*d, where k is an integer)
-        qm_ste = (qm_hard - qm_clamped).detach() + qm_clamped
-
-        return {'d_clamped':d_clamped, 'qm_clamped':qm_clamped, 'd_hard':d_hard, 'd_ste':d_ste, 'qm_ste':qm_ste, 'qm_hard':qm_hard }
-
+        return {'d_clamped': d_clamped, 'qm_clamped': qm_clamped, 'd_hard': d_hard, 'd_ste': d_ste, 'qm_ste': qm_ste,
+                'qm_hard': qm_hard}
 
 
     def get_params_orig(self):
 
         qm_clamped = torch.clamp(self.qm, min=self.qm_min, max=self.qm_max)
 
-        d_clamped_ = torch.clamp(self.d, min=self.d_min, max=self.d_max)
-        d_clamped = torch.min(d_clamped_, qm_clamped)
+        d_clamped = torch.clamp(self.d, min=self.d_min, max=self.d_max)
+        d_clamped = torch.min(d_clamped, qm_clamped)
+
         d_hard = 2 ** torch.round(torch.log2(d_clamped))
-        d_hard = torch.min(d_hard, qm_clamped)  # to ensure that qm >= d. And if d > qm, then I make it equal to qm.
+        if self.integer_bits_constraint:
+            qm_hard = d_hard * (2 ** (torch.floor(torch.log2(torch.ceil(qm_clamped / d_hard))) + 1) - 1)
+        else:
+            qm_hard = d_hard * torch.round(qm_clamped / d_hard)
+        d_hard = torch.min(d_hard, qm_hard)
+
+        qm_ste = (qm_hard - qm_clamped).detach() + qm_clamped
         d_ste = (d_hard - d_clamped).detach() + d_clamped
 
-        qm_hard = d_hard * torch.round(qm_clamped / d_hard)  # so that qm corresponds to uniform base grid (or in other words qm = k*d, where k is an integer)
-        qm_ste = (qm_hard - qm_clamped).detach() + qm_clamped
 
-        return {'d_clamped':d_clamped, 'qm_clamped':qm_clamped, 'd_hard':d_hard, 'd_ste':d_ste, 'qm_ste':qm_ste, 'qm_hard':qm_hard }
-
-
+        return {'d_clamped': d_clamped, 'qm_clamped': qm_clamped, 'd_hard': d_hard, 'd_ste': d_ste, 'qm_ste': qm_ste,
+                'qm_hard': qm_hard}
 
 
     @torch.no_grad()
@@ -173,9 +182,9 @@ class Quantizer(nn.Module):
 
 
     def forward(self, input):
-
+    
         params_dict = self.get_params()
         d_ste, qm_ste = params_dict['d_ste'], params_dict['qm_ste']
 
-        return QuantizerFunction.apply(input, d_ste, qm_ste)
+        return QuantizerFunction.apply(input, params_dict['d_clamped'], params_dict['qm_clamped'], params_dict['d_hard'], params_dict['qm_hard'])
 
