@@ -17,7 +17,7 @@ width="400" height ="250"
     
     
 <p> 
-    <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/EP170.eps"  />
+    <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/EP170.jpg"  />
     <br>
     <em> TITLE </em> 
 <p\>
