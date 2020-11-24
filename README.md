@@ -7,7 +7,6 @@ The quantizer is implemented for the weights, and could be easily extended for a
 
 We train Resnet20 on Cifar10 to illustrate results of quantization. 
 
-width="400" height ="250"
 
 <p> 
     <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/Validation_Accuracy.svg"  />
@@ -18,6 +17,13 @@ width="400" height ="250"
     
 <p> 
     <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/EP170.jpg"  />
+    <br>
+    <em> TITLE </em> 
+<p\>
+    
+    
+<p> 
+    <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/bw_assignment.jpg"  />
     <br>
     <em> TITLE </em> 
 <p\>
