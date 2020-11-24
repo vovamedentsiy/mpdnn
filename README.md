@@ -5,7 +5,7 @@ In this repository, you can find the implementation of the DQ uniform [quantizer
 
 The quantizer is implemented for the weights, and could be easily extended for activations with minor changes in code. 
 
-We train Resnet20 on Cifar10 to illustrate results of quantization. The model was constrained to 70 kBytes.  
+We train Resnet20 on Cifar10 to illustrate results of quantization. The model was constrained to 70 kBytes. Below we illustrate plots of Validation accuracy, distribution of weights at convergence and bit-width assignment per layer. 
 
 
 <p> 
