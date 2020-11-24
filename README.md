@@ -9,7 +9,7 @@ We train Resnet20 on Cifar10 to illustrate results of quantization.
 
 
 <p> 
-    <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/Validation_Accuracy.svg" width="400" height ="250" />
+    <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/Validation_Accuracy.svg"  />
     <br>
-    <em>ELBO for VAE with 20-dim latent space</em> 
+    <em> TITLE </em> 
 <p\>
