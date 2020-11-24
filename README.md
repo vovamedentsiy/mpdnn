@@ -6,3 +6,10 @@ In this repository, you can find the implementation of the DQ uniform [quantizer
 The quantizer is implemented for the weights, and could be easily extended for activations with minor changes in code. 
 
 We train Resnet20 on Cifar10 to illustrate results of quantization. 
+
+
+<p> 
+    <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/Validation_Accuracy.svg" width="400" height ="250" />
+    <br>
+    <em>ELBO for VAE with 20-dim latent space</em> 
+<p\>
