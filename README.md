@@ -5,25 +5,25 @@ In this repository, you can find the implementation of the DQ uniform [quantizer
 
 The quantizer is implemented for the weights, and could be easily extended for activations with minor changes in code. 
 
-We train Resnet20 on Cifar10 to illustrate results of quantization. 
+We train Resnet20 on Cifar10 to illustrate results of quantization. The model was constrained to 70 kBytes.  
 
 
 <p> 
     <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/Validation_Accuracy.svg"  />
     <br>
-    <em> TITLE </em> 
+    <em> Validation Accuracy </em> 
 <p\>
     
     
 <p> 
     <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/EP170.jpg"  />
     <br>
-    <em> TITLE </em> 
+    <em> Dsitribution of weights at convergence </em> 
 <p\>
     
     
 <p> 
     <img src="https://github.com/vovamedentsiy/mpdnn/blob/main/imgs/bw_assignment.jpg"  />
     <br>
-    <em> TITLE </em> 
+    <em>  </em> 
 <p\>
