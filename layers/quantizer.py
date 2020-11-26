@@ -184,7 +184,6 @@ class Quantizer(nn.Module):
     def forward(self, input):
     
         params_dict = self.get_params()
-        d_ste, qm_ste = params_dict['d_ste'], params_dict['qm_ste']
 
         return QuantizerFunction.apply(input, params_dict['d_clamped'], params_dict['qm_clamped'], params_dict['d_hard'], params_dict['qm_hard'])
 
