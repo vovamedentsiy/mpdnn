@@ -27,7 +27,7 @@ def train_epoch(model, train_loader, train_writer, optimizer, log_interval, epoc
     model.train()
     progbar = Progbar(len(train_loader))
     for batch_idx, (data, target) in enumerate(train_loader):
-      with torch.autograd.detect_anomaly():
+      
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.)
 
 
